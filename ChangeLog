@@ -6,7 +6,7 @@ Here we list changes that are relatively significant and/or visible to the
 user. For a history of changes in full detail, see our Git repository
 at https://git.dillo-browser.org/dillo
 
-dillo-3.3.0 [Unreleased]
+dillo-3.3.0 [Apr 26, 2025]
 
 +- Add optional support for brotli (br) content encoding.
  - Add about:keys to display current keyboard shortcuts.
@@ -36,6 +36,8 @@ dillo-3.3.0 [Unreleased]
  - Add "trace_http" option to debug HTTP traffic.
  - Avoid cached responses when submitting forms.
  - Fix cookie Max-Age parsing using the epoch instead of the local timezone.
+ - Add experimental FLTK >= 1.4 support with the --enable-experimental-fltk
+   configure flag.
    Patches: Rodrigo Arias Mallo
 +- Middle click on back or forward button opens page in new tab.
    Patches: Alex
