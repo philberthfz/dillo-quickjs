@@ -11,6 +11,8 @@ dillo-3.4.0 [Unreleased]
 +- Add support for 303 (See Other) HTTP redirects.
  - Fix cookies expire date parsing as UTC instead of local time.
    Patches: Rodrigo Arias Mallo
++- Fix handling of empty Domain in cookies.
+   Patches: Julian Jørgensen
 
 dillo-3.3.0 [Apr 26, 2025]
 

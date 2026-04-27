@@ -932,8 +932,12 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
          cookie->path = value;
       } else if (dStrAsciiCasecmp(attr, "Domain") == 0) {
          value = Cookies_parse_value(&str);
-         dFree(cookie->domain);
-         cookie->domain = value;
+         if (value[0] != '\0') {
+            dFree(cookie->domain);
+            cookie->domain = value;
+         } else {
+            dFree(value);
+         }
       } else if (dStrAsciiCasecmp(attr, "Max-Age") == 0) {
          value = Cookies_parse_value(&str);
          if (dIsdigit(*value) || *value == '-') {
