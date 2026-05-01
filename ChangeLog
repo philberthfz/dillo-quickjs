@@ -6,6 +6,11 @@ Here we list changes that are relatively significant and/or visible to the
 user. For a history of changes in full detail, see our Git repository
 at https://git.dillo-browser.org/dillo
 
+dillo-3.4.0 [Unreleased]
+
++- Add support for 303 (See Other) HTTP redirects.
+   Patches: Rodrigo Arias Mallo
+
 dillo-3.3.0 [Apr 26, 2025]
 
 +- Add optional support for brotli (br) content encoding.

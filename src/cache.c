@@ -823,7 +823,13 @@ static void Cache_parse_header(CacheEntry_t *entry)
             if (header[11] == '1')
                entry->Flags |= CA_ForceRedirect;  /* 301 Moved Permanently */
             else if (header[11] == '2')
-               entry->Flags |= CA_TempRedirect;   /* 302 Temporary Redirect */
+               entry->Flags |= CA_TempRedirect;   /* 302 Found */
+            else if (header[11] == '3')
+               entry->Flags |= CA_TempRedirect;   /* 303 See Other */
+
+	    /* Other redirect codes like 307 (Temporary Redirect) "MUST NOT
+	     * change the request method". We currently switch to GET. See:
+	     * https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.8 */
          }
          dFree(location_str);
       } else if (strncmp(header + 9, "401", 3) == 0) {
