@@ -9,6 +9,7 @@ at https://git.dillo-browser.org/dillo
 dillo-3.4.0 [Unreleased]
 
 +- Add support for 303 (See Other) HTTP redirects.
+ - Fix cookies expire date parsing as UTC instead of local time.
    Patches: Rodrigo Arias Mallo
 
 dillo-3.3.0 [Apr 26, 2025]

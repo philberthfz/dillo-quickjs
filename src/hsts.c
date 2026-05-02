@@ -3,7 +3,7 @@
  * HTTP Strict Transport Security
  *
  * Copyright 2015 corvid
- * Copyright (C) 2023 Rodrigo Arias Mallo <rodarima@gmail.com>
+ * Copyright (C) 2023-2026 Rodrigo Arias Mallo <rodarima@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ static time_t Hsts_future_time(long seconds_from_now)
    else
       tm->tm_sec += seconds_from_now;
 
-   ret = mktime(tm);
+   ret = dTimegm(tm);
    if (ret == (time_t) -1)
       ret = hsts_latest_representable_time;
 
@@ -358,7 +358,7 @@ void a_Hsts_init(FILE *preload_file)
    if (prefs.http_strict_transport_security) {
       struct tm future_tm = {7, 14, 3, 19, 0, 138, 0, 0, 0, 0, 0};
 
-      hsts_latest_representable_time = mktime(&future_tm);
+      hsts_latest_representable_time = dTimegm(&future_tm);
       domains = dList_new(32);
 
       if (preload_file) {

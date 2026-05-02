@@ -1,6 +1,9 @@
 /*
  * Dillo cookies test
  *
+ * Copyright 2010-2015 corvid <corvid@lavabit.com>
+ * Copyright 2026 Rodrigo Arias Mallo <rodarima@gmail.com>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -491,6 +494,12 @@ static void expect(int lineno, const char *exp_reply,
    }
 }
 
+/* Return a date string in UTC from a time_t date */
+static const char* ctime_utc(time_t *utc_time)
+{
+	return asctime(gmtime(utc_time));
+}
+
 static void toomany()
 {
    a_Cookies_set("1=1", "toomany.com", "/", NULL);
@@ -533,7 +542,7 @@ static void toomany()
 static void maxage()
 {
    time_t t = time(NULL)+1000;
-   char *server_date = dStrdup(ctime(&t));
+   char *server_date = dStrdup(ctime_utc(&t));
 
    a_Cookies_set("name=val; max-age=0", "maxage0.com", "/", NULL);
    expect(__LINE__, "", "http", "maxage0.com", "/");
@@ -592,9 +601,9 @@ static void expires_server_ahead()
 {
    char *string;
    time_t t = time(NULL)+1000;
-   char *server_date = dStrdup(ctime(&t));
+   char *server_date = dStrdup(ctime_utc(&t));
    time_t expt = t + 1000;
-   char *exp_date = dStrdup(ctime(&expt));
+   char *exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e2000s1000.com", "/", NULL);
@@ -605,7 +614,7 @@ static void expires_server_ahead()
 
    expt = t - 500; /* past for the server, future for us */
    dFree(exp_date);
-   exp_date = dStrdup(ctime(&expt));
+   exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e500s1000.com", "/", NULL);
@@ -616,7 +625,7 @@ static void expires_server_ahead()
 
    expt = t; /* expire at future-for-us server date */
    dFree(exp_date);
-   exp_date = dStrdup(ctime(&expt));
+   exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e1000s1000.com", "/", NULL);
@@ -627,7 +636,7 @@ static void expires_server_ahead()
 
    expt = time(NULL); /* now */
    dFree(exp_date);
-   exp_date = dStrdup(ctime(&expt));
+   exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e0s1000.com", "/", NULL);
@@ -644,10 +653,10 @@ static void expires_server_behind()
 {
    char *string;
    time_t t = time(NULL)-1000;
-   char *server_date = dStrdup(ctime(&t));
+   char *server_date = dStrdup(ctime_utc(&t));
 
    time_t expt = t + 1000;
-   char *exp_date = dStrdup(ctime(&expt));
+   char *exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e0s-1000.com", "/", NULL);
@@ -658,7 +667,7 @@ static void expires_server_behind()
 
    expt = t + 500; /* future for the server, past for us */
    dFree(exp_date);
-   exp_date = dStrdup(ctime(&expt));
+   exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e-500s-1000.com", "/", NULL);
@@ -669,7 +678,7 @@ static void expires_server_behind()
 
    expt = t; /* expire at past-for-us server date */
    dFree(exp_date);
-   exp_date = dStrdup(ctime(&expt));
+   exp_date = dStrdup(ctime_utc(&expt));
 
    string = dStrconcat("name=val; expires=", exp_date, NULL);
    a_Cookies_set(string, "e-1000s-1000.com", "/", NULL);
@@ -713,7 +722,7 @@ static void expires_extremes()
    expect(__LINE__, "Cookie: name=val\r\n", "http", "pastmax.com", "/");
 
    t = time(NULL)+1000;
-   server_date = dStrdup(ctime(&t));
+   server_date = dStrdup(ctime_utc(&t));
 
    a_Cookies_set("name=val; expires=Fri Dec 13 20:45:52 1901", "expmina.com",
                  "/", server_date);
@@ -737,7 +746,7 @@ static void expires_extremes()
 
    t = time(NULL)-1000;
    dFree(server_date);
-   server_date = dStrdup(ctime(&t));
+   server_date = dStrdup(ctime_utc(&t));
 
    a_Cookies_set("name=val; expires=Fri Dec 13 20:45:52 1901", "expminb.com",
                  "/", server_date);

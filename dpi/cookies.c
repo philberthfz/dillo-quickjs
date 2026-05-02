@@ -298,7 +298,7 @@ static void Cookies_load_cookies(FILE *stream)
             Cookies_tm_init(&tm);
             tm.tm_min += seconds / 60;
             tm.tm_sec += seconds % 60;
-            cookie->expires_at = mktime(&tm);
+            cookie->expires_at = dTimegm(&tm);
          } else {
             cookie->expires_at = (time_t) -1;
          }
@@ -343,8 +343,8 @@ static void Cookies_init(void)
    /* Default setting */
    disabled = TRUE;
 
-   cookies_epoch_time = mktime(&cookies_epoch_tm);
-   cookies_future_time = mktime(&future_tm);
+   cookies_epoch_time = dTimegm(&cookies_epoch_tm);
+   cookies_future_time = dTimegm(&future_tm);
 
    /* Read and parse the cookie control file (cookiesrc) */
    if (Cookie_control_init() != 0) {
@@ -862,7 +862,7 @@ static double Cookies_server_timediff(const char *server_date)
       struct tm *server_tm = Cookies_parse_date(server_date);
 
       if (server_tm) {
-         time_t server_time = mktime(server_tm);
+         time_t server_time = dTimegm(server_tm);
 
          if (server_time != (time_t) -1)
             ret = difftime(time(NULL), server_time);
@@ -923,7 +923,7 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
          now = time(NULL);
          tm = gmtime(&now);
          ++tm->tm_year;
-         cookie->expires_at = mktime(tm);
+         cookie->expires_at = dTimegm(tm);
          if (cookie->expires_at == (time_t) -1)
             cookie->expires_at = cookies_future_time;
       } else if (dStrAsciiCasecmp(attr, "Path") == 0) {
@@ -970,14 +970,16 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
             tm = Cookies_parse_date(value);
             if (tm) {
                tm->tm_sec += Cookies_server_timediff(server_date);
-               cookie->expires_at = mktime(tm);
+               cookie->expires_at = dTimegm(tm);
                if (cookie->expires_at == (time_t) -1 && tm->tm_year >= 138) {
                   /* Just checking tm_year does not ensure that the problem was
                    * inability to represent a distant date...
                    */
                   cookie->expires_at = cookies_future_time;
                }
-               _MSG("Cookie (from Expires) to expire at %s", ctime(&cookie->expires_at));
+               _MSG("Cookie (from Expires) to expire at %s (%ld)\n",
+			       ctime(&cookie->expires_at),
+			       (long) cookie->expires_at);
                dFree(tm);
             } else {
                cookie->expires_at = (time_t) -1;
