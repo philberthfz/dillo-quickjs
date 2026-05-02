@@ -5,4 +5,5 @@ noinst_LIBRARIES = libDlib.a
 
 libDlib_a_SOURCES = \
 	dlib.h \
+	timegm.c \
 	dlib.c

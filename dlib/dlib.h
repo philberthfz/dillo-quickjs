@@ -18,6 +18,7 @@
 #include <stddef.h>    /* for size_t */
 #include <stdarg.h>    /* for va_list */
 #include <string.h>    /* for strerror */
+#include <time.h>      /* for time_t and tm */
 
 #include "d_size.h"
 
@@ -208,6 +209,7 @@ char *dGethomedir(void);
 char *dGetline(FILE *stream);
 int dClose(int fd);
 int dUsleep(unsigned long us);
+time_t dTimegm(struct tm *tm);
 
 #ifdef __cplusplus
 }
