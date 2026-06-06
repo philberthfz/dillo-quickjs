@@ -1066,6 +1066,12 @@ int main()
    expect(__LINE__, "Cookie: name=val; name2=val2\r\n", "http",
           "supdomain.com", "/");
 
+   /* EMPTY DOMAIN */
+   a_Cookies_set("name=val; domain=", "emptydomain.com", "/", NULL);
+   expect(__LINE__, "Cookie: name=val\r\n", "http", "emptydomain.com", "/");
+   a_Cookies_set("name=val2; domain=;", "emptydomain2.com", "/", NULL);
+   expect(__LINE__, "Cookie: name=val2\r\n", "http", "emptydomain2.com", "/");
+
    /* UNRELATED */
    a_Cookies_set("name=val; domain=another.com", "unrelated.com", "/", NULL);
    expect(__LINE__, "", "http", "another.com", "/");
