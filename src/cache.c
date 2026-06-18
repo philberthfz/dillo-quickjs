@@ -765,9 +765,9 @@ static Dlist *Cache_parse_multiple_fields(const char *header,
             j--;
          field = dStrndup(header + i, j);
          dList_append(fields, field);
-      } else {
-         while (header[i] != '\n') i++;
       }
+      /* Skip to next line */
+      while (header[i] != '\n') i++;
    }
 
    if (dList_length(fields) == 0) {
