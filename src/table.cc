@@ -2,7 +2,7 @@
  * File: table.cc
  *
  * Copyright 2008 Jorge Arellano Cid <jcid@dillo.org>
- * Copyright 2024 Rodrigo Arias Mallo <rodarima@gmail.com>
+ * Copyright 2024-2026 Rodrigo Arias Mallo <rodarima@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -249,31 +249,6 @@ void Html_tag_open_td(DilloHtml *html, const char *tag, int tagsize)
 void Html_tag_content_td(DilloHtml *html, const char *tag, int tagsize)
 {
    Html_tag_content_table_cell (html, tag, tagsize);
-}
-
-/*
- * <tbody>
- */
-void Html_tag_open_tbody(DilloHtml *html, const char *tag, int tagsize)
-{
-}
-
-void Html_tag_content_tbody(DilloHtml *html, const char *tag, int tagsize)
-{
-}
-
-/*
- * <tfoot>
- */
-void Html_tag_open_tfoot(DilloHtml *html, const char *tag, int tagsize)
-{
-}
-
-/*
- * <thead>
- */
-void Html_tag_open_thead(DilloHtml *html, const char *tag, int tagsize)
-{
 }
 
 /*
