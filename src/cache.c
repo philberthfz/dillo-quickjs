@@ -287,7 +287,7 @@ static int Cache_bufsize(CacheEntry_t *e)
  * Inject full page content directly into the cache.
  * Used for "about:splash". May be used for "about:cache" too.
  *
- * The @param data_ds buffer is copied into the entry buffer, so it is
+ * @param buf is copied into the entry buffer, so it is the
  * responsibility of the caller to free it.
  */
 void a_Cache_entry_inject(const DilloUrl *Url,
