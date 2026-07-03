@@ -2,6 +2,7 @@
  * File: misc.c
  *
  * Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>,
+ * Copyright (C) 2026 Rodrigo Arias Mallo <rodarima@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,12 +34,14 @@ char *a_Misc_escape_chars(const char *str, const char *esc_set)
 
    dstr = dStr_sized_new(64);
    for (i = 0; str[i]; ++i) {
-      if (str[i] <= 0x1F || str[i] == 0x7F || strchr(esc_set, str[i])) {
+      /* Make sure char is unsigned, otherwise values >127 will be negative */
+      unsigned char c = (unsigned char) str[i];
+      if (c <= 0x1F || c >= 0x7F || strchr(esc_set, c)) {
          dStr_append_c(dstr, '%');
-         dStr_append_c(dstr, hex[(str[i] >> 4) & 15]);
-         dStr_append_c(dstr, hex[str[i] & 15]);
+         dStr_append_c(dstr, hex[(c >> 4) & 15]);
+         dStr_append_c(dstr, hex[c & 15]);
       } else {
-         dStr_append_c(dstr, str[i]);
+         dStr_append_c(dstr, c);
       }
    }
    p = dstr->str;
