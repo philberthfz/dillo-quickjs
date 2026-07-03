@@ -14,7 +14,7 @@ dillo-3.4.0 [Unreleased]
 +- Fix handling of empty Domain in cookies.
    Patches: Julian Jørgensen
 
-dillo-3.3.0 [Apr 26, 2025]
+dillo-3.3.0 [Apr 26, 2026]
 
 +- Add optional support for brotli (br) content encoding.
  - Add about:keys to display current keyboard shortcuts.
