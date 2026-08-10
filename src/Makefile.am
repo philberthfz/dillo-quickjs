@@ -35,6 +35,9 @@ dillo_LDADD = \
 	@LIBICONV_LIBS@ @LIBPTHREAD_LIBS@ @LIBX11_LIBS@ \
 	@BROTLI_LIBS@
 
+dillo_LDFLAGS = \
+	@LIBPTHREAD_LDFLAGS@
+
 dillo_SOURCES = \
 	dillo.cc \
 	version.cc \
