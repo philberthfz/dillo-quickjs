@@ -1,7 +1,7 @@
 /*
  * File: dilloc.c
  *
- * Copyright 2025 Rodrigo Arias Mallo <rodarima@gmail.com>
+ * Copyright 2025-2026 Rodrigo Arias Mallo <rodarima@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,11 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <time.h>
+
+/* Hurd */
+#ifndef PATH_MAX
+# define PATH_MAX 4096
+#endif
 
 static int
 is_number(const char *str)
