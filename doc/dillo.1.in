@@ -1,4 +1,4 @@
-.TH dillo 1 "May 28, 2015" "" "USER COMMANDS"
+.TH dillo 1 "August 11, 2026" "" "USER COMMANDS"
 .SH NAME
 dillo \- web browser
 .SH SYNOPSIS
@@ -9,10 +9,9 @@ dillo \- web browser
 .SH DESCRIPTION
 .PP
 Dillo is a lightweight graphical web browser that aims to be secure.
-It handles HTTP internally, and FILE, FTP, and
-DATA URIs are handled through a plugin system (dpi). In addition,
-.I EXPERIMENTAL
-HTTPS support can be enabled. Both FTP and Dillo's download manager use the
+It handles HTTP/HTTPS internally, and FILE, FTP, and
+DATA URIs are handled through a plugin system (dpi). Both FTP and
+Dillo's download manager use the
 .BR wget (1)
 downloader.
 .PP
