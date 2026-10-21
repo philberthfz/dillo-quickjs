@@ -155,6 +155,11 @@ static void print_features()
 #else
          " -CTL"
 #endif
+#ifdef ENABLE_JS
+         " +JS"
+#else
+         " -JS"
+#endif
          "\n");
 }
 

@@ -36,7 +36,13 @@
  * - Console: log(), info(), warn(), error()
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "dillo_js.hh"
+
+#ifdef ENABLE_JS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +59,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+extern "C" {
+#if __has_include(<quickjs/quickjs.h>)
 #include <quickjs/quickjs.h>
+#elif __has_include(<quickjs.h>)
+#include <quickjs.h>
+#else
+#include <quickjs/quickjs.h>
+#endif
+}
 #include <FL/Fl.H>
 #include <pthread.h>
 #include <curl/curl.h>
@@ -4298,3 +4312,78 @@ int a_Dillo_JS_dispatch_link_click(void *v_ctx, int link_idx)
    JS_FreeValue(dctx->ctx, link_obj);
    return ok ? 1 : 0;
 }
+
+#else /* !ENABLE_JS */
+
+/* Stubs when JavaScript support is compiled out */
+void a_Dillo_JS_init(void) {}
+void a_Dillo_JS_cleanup(void) {}
+void *a_Dillo_JS_context_new(void *v_html, const char *url_str) {
+   (void)v_html;
+   (void)url_str;
+   return NULL;
+}
+void a_Dillo_JS_context_free(void *v_ctx) {
+   (void)v_ctx;
+}
+void a_Dillo_JS_eval(void *v_ctx, const char *code, size_t len, const char *filename) {
+   (void)v_ctx;
+   (void)code;
+   (void)len;
+   (void)filename;
+}
+void a_Dillo_JS_on_tag_open(void *v_ctx, const char *tag_name, const char *tag, int tagsize,
+                            void *v_form, void *v_input, int link_idx, int img_idx) {
+   (void)v_ctx;
+   (void)tag_name;
+   (void)tag;
+   (void)tagsize;
+   (void)v_form;
+   (void)v_input;
+   (void)link_idx;
+   (void)img_idx;
+}
+void a_Dillo_JS_on_tag_close(void *v_ctx, const char *tag_name) {
+   (void)v_ctx;
+   (void)tag_name;
+}
+void a_Dillo_JS_on_text(void *v_ctx, const char *text, int len) {
+   (void)v_ctx;
+   (void)text;
+   (void)len;
+}
+int a_Dillo_JS_dispatch_page_load(void *v_ctx) {
+   (void)v_ctx;
+   return 1;
+}
+int a_Dillo_JS_dispatch_form_submit(void *v_ctx, void *v_form) {
+   (void)v_ctx;
+   (void)v_form;
+   return 1;
+}
+int a_Dillo_JS_dispatch_form_reset(void *v_ctx, void *v_form) {
+   (void)v_ctx;
+   (void)v_form;
+   return 1;
+}
+int a_Dillo_JS_dispatch_input_click(void *v_ctx, void *v_input) {
+   (void)v_ctx;
+   (void)v_input;
+   return 1;
+}
+int a_Dillo_JS_dispatch_input_change(void *v_ctx, void *v_input) {
+   (void)v_ctx;
+   (void)v_input;
+   return 1;
+}
+int a_Dillo_JS_dispatch_link_click(void *v_ctx, int link_idx) {
+   (void)v_ctx;
+   (void)link_idx;
+   return 1;
+}
+void a_Dillo_JS_register_httponly_cookie(const char *host, const char *cookie_name) {
+   (void)host;
+   (void)cookie_name;
+}
+
+#endif /* ENABLE_JS */

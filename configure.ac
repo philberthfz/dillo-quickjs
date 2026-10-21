@@ -659,34 +659,100 @@ fi
 dnl ----------------------
 dnl Test for QuickJS & libcurl
 dnl ----------------------
+AC_ARG_ENABLE([js],
+  [AS_HELP_STRING([--enable-js], [Enable QuickJS JavaScript support @<:@default=auto@:>@])],
+  [enable_js=$enableval],
+  [enable_js=auto])
+
 QUICKJS_CPPFLAGS=""
 QUICKJS_LIBS=""
+quickjs_found="no"
 
-AC_MSG_CHECKING([for QuickJS])
-for dir in /opt/homebrew/opt/quickjs /usr/local /usr /opt/quickjs; do
-  if test -f "$dir/include/quickjs/quickjs.h" || test -f "$dir/include/quickjs.h"; then
-    if test -f "$dir/include/quickjs/quickjs.h"; then
-      QUICKJS_CPPFLAGS="-I$dir/include"
-    else
-      QUICKJS_CPPFLAGS="-I$dir/include -I$dir/include/quickjs"
+if test "x$enable_js" != "xno"; then
+  AC_MSG_CHECKING([for QuickJS])
+
+  # 1. Try pkg-config if available
+  if command -v pkg-config >/dev/null 2>&1; then
+    if pkg-config --exists quickjs 2>/dev/null; then
+      QUICKJS_CPPFLAGS="`pkg-config --cflags quickjs`"
+      QUICKJS_LIBS="`pkg-config --libs quickjs`"
+      quickjs_found="yes"
+    elif pkg-config --exists qjs 2>/dev/null; then
+      QUICKJS_CPPFLAGS="`pkg-config --cflags qjs`"
+      QUICKJS_LIBS="`pkg-config --libs qjs`"
+      quickjs_found="yes"
     fi
-    if test -f "$dir/lib/quickjs/libquickjs.a"; then
-      QUICKJS_LIBS="-L$dir/lib/quickjs -L$dir/lib -lquickjs"
-    elif test -f "$dir/lib/libquickjs.a" || test -f "$dir/lib/libquickjs.so" || test -f "$dir/lib/libquickjs.dylib"; then
-      QUICKJS_LIBS="-L$dir/lib -lquickjs"
-    fi
-    break
   fi
-done
 
-if test -z "$QUICKJS_LIBS"; then
-  QUICKJS_LIBS="-lquickjs"
-  AC_MSG_RESULT([fallback to -lquickjs])
-else
-  AC_MSG_RESULT([found ($QUICKJS_CPPFLAGS $QUICKJS_LIBS)])
+  # 2. Directory probe if pkg-config didn't find it
+  if test "x$quickjs_found" = "xno"; then
+    for dir in /opt/homebrew/opt/quickjs /opt/homebrew /usr/local /usr /opt/quickjs; do
+      if test -f "$dir/include/quickjs/quickjs.h" || test -f "$dir/include/quickjs.h"; then
+        if test -f "$dir/include/quickjs/quickjs.h"; then
+          QUICKJS_CPPFLAGS="-I$dir/include"
+        else
+          QUICKJS_CPPFLAGS="-I$dir/include -I$dir/include/quickjs"
+        fi
+        for libdir in "$dir/lib/quickjs" "$dir/lib" "$dir/lib64" "$dir/lib/x86_64-linux-gnu" "$dir/lib/aarch64-linux-gnu"; do
+          if test -f "$libdir/libquickjs.a" || test -f "$libdir/libquickjs.so" || test -f "$libdir/libquickjs.dylib"; then
+            QUICKJS_LIBS="-L$libdir -lquickjs"
+            quickjs_found="yes"
+            break
+          elif test -f "$libdir/libqjs.a" || test -f "$libdir/libqjs.so" || test -f "$libdir/libqjs.dylib"; then
+            QUICKJS_LIBS="-L$libdir -lqjs"
+            quickjs_found="yes"
+            break
+          fi
+        done
+        if test "x$quickjs_found" = "xyes"; then
+          break
+        fi
+      fi
+    done
+  fi
+
+  # 3. Direct library check if headers found but libs not in specified subpaths
+  if test "x$quickjs_found" = "xno"; then
+    old_libs="$LIBS"
+    AC_CHECK_LIB([quickjs], [JS_NewRuntime], [QUICKJS_LIBS="-lquickjs"; quickjs_found="yes"], [
+      AC_CHECK_LIB([qjs], [JS_NewRuntime], [QUICKJS_LIBS="-lqjs"; quickjs_found="yes"])
+    ])
+    LIBS="$old_libs"
+  fi
+
+  # 4. Check for libcurl
+  curl_found="no"
+  if command -v curl-config >/dev/null 2>&1; then
+    QUICKJS_CPPFLAGS="$QUICKJS_CPPFLAGS `curl-config --cflags`"
+    QUICKJS_LIBS="$QUICKJS_LIBS `curl-config --libs`"
+    curl_found="yes"
+  elif command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libcurl 2>/dev/null; then
+    QUICKJS_CPPFLAGS="$QUICKJS_CPPFLAGS `pkg-config --cflags libcurl`"
+    QUICKJS_LIBS="$QUICKJS_LIBS `pkg-config --libs libcurl`"
+    curl_found="yes"
+  else
+    old_libs="$LIBS"
+    AC_CHECK_LIB([curl], [curl_easy_init], [QUICKJS_LIBS="$QUICKJS_LIBS -lcurl"; curl_found="yes"])
+    LIBS="$old_libs"
+  fi
+
+  if test "x$quickjs_found" = "xyes" && test "x$curl_found" = "xyes"; then
+    enable_js="yes"
+    AC_MSG_RESULT([yes ($QUICKJS_CPPFLAGS $QUICKJS_LIBS)])
+  else
+    if test "x$enable_js" = "xyes"; then
+      AC_MSG_ERROR([QuickJS or libcurl not found. Install quickjs (or libqjs-dev) and libcurl, or configure with --disable-js])
+    else
+      enable_js="no"
+      AC_MSG_RESULT([no (disabling JS)])
+    fi
+  fi
 fi
 
-QUICKJS_LIBS="$QUICKJS_LIBS -lcurl"
+if test "x$enable_js" = "xyes"; then
+  AC_DEFINE([ENABLE_JS], [1], [Enable QuickJS JavaScript engine])
+fi
+AM_CONDITIONAL([ENABLE_JS], [test "x$enable_js" = "xyes"])
 AC_SUBST(QUICKJS_LIBS)
 AC_SUBST(QUICKJS_CPPFLAGS)
 
@@ -1034,4 +1100,5 @@ _AS_ECHO([  WEBP enabled   : ${webp_ok}])
 _AS_ECHO([  Brotli enabled : ${brotli_ok}])
 _AS_ECHO([  IPv6 enabled   : ${enable_ipv6}])
 _AS_ECHO([  Control socket : ${enable_control_socket}])
+_AS_ECHO([  JavaScript (JS): ${enable_js}])
 _AS_ECHO([])

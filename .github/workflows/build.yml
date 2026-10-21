@@ -9,20 +9,22 @@ jobs:
   ubuntu-latest-html-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev xvfb x11-apps x11-utils imagemagick
+      run: |
+        sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev libcurl4-openssl-dev xvfb x11-apps x11-utils imagemagick
+        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
 
     - name: autogen
       run: ./autogen.sh
     - name: Make install dir
       run: mkdir install build
     - name: configure
-      run: cd build && ../configure --prefix=$(readlink -f ../install) --enable-html-tests
+      run: cd build && ../configure --prefix=$(readlink -f ../install) --enable-html-tests --enable-js
     - name: make
       run: cd build && make
     - name: make install
@@ -53,32 +55,27 @@ jobs:
       run: |
         export DILLOBINDIR=
         mkdir build-distcheck install-distcheck
-        cd build-distcheck && ../configure --prefix=$(readlink -f ../install-distcheck) --enable-html-tests
-        make distcheck DISTCHECK_CONFIGURE_FLAGS=--enable-html-tests
-#   - name: Remove pipes
-#     run: find test/html -type p -delete || true
-#   - name: Archive production artifacts
-#     uses: actions/upload-artifact@v3
-#     with:
-#       name: upload-html-test-results
-#       path: |
-#         build/test/html
+        cd build-distcheck && ../configure --prefix=$(readlink -f ../install-distcheck) --enable-html-tests --enable-js
+        make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-html-tests --enable-js"
+
   ubuntu-latest-memory-leaks:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev xvfb x11-apps x11-utils imagemagick
+      run: |
+        sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev libcurl4-openssl-dev xvfb x11-apps x11-utils imagemagick
+        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
     - name: autogen
       run: ./autogen.sh
     - name: Make install dir
       run: mkdir install build
     - name: configure
-      run: cd build && ../configure CFLAGS="-fsanitize=address" CXXFLAGS="-fsanitize=address" --prefix=$(readlink -f ../install) --enable-html-tests
+      run: cd build && ../configure CFLAGS="-fsanitize=address" CXXFLAGS="-fsanitize=address" --prefix=$(readlink -f ../install) --enable-html-tests --enable-js
     - name: make
       run: cd build && make
     - name: make install
@@ -92,17 +89,20 @@ jobs:
         export DILLOBINDIR=$(readlink -f install/bin)
         cd build && make check || (cat test/html/test-suite.log; false)
         export DILLOBINDIR=
+
   ubuntu-latest-no-tls:
     needs: ubuntu-latest-html-tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libfltk1.3-dev
+      run: |
+        sudo apt install -y libfltk1.3-dev libcurl4-openssl-dev
+        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
     - name: autogen
       run: ./autogen.sh
     - name: configure
@@ -113,17 +113,20 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+
   ubuntu-latest-mbedtls2:
     needs: ubuntu-latest-html-tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libfltk1.3-dev libmbedtls-dev
+      run: |
+        sudo apt install -y libfltk1.3-dev libmbedtls-dev libcurl4-openssl-dev
+        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
     - name: autogen
       run: ./autogen.sh
     - name: configure
@@ -134,17 +137,20 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+
   ubuntu-latest-openssl-3:
     needs: ubuntu-latest-html-tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
       run: sudo apt update
     - name: Install dependencies
-      run: sudo apt install -y libfltk1.3-dev libssl-dev
+      run: |
+        sudo apt install -y libfltk1.3-dev libssl-dev libcurl4-openssl-dev
+        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
     - name: autogen
       run: ./autogen.sh
     - name: configure
@@ -155,11 +161,12 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+
   ubuntu-latest-with-old-std:
     needs: ubuntu-latest-html-tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Update package lists
@@ -169,19 +176,20 @@ jobs:
     - name: autogen
       run: ./autogen.sh
     - name: configure
-      # Make sure we build with the C++11 standard, so we fail to build on newer
-      # features.
-      run: ./configure --disable-mbedtls CFLAGS="-Werror" CXXFLAGS="-Werror -std=c++11"
+      # Make sure we build with the C++11 standard and disable JS (which targets C++17).
+      run: ./configure --disable-mbedtls --disable-js CFLAGS="-Werror" CXXFLAGS="-Werror -std=c++11"
     - name: make
       run: make
     - name: make check
       run: make check
+
   alpine-mbedtls-3_6_0:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: jirutka/setup-alpine@v1
       with:
+        branch: v3.20
         packages: >
           build-base
           autoconf
@@ -191,28 +199,32 @@ jobs:
           libjpeg-turbo-dev
           libwebp-dev
           mbedtls-dev
+          curl-dev
+          quickjs-dev
     - run: |
         ./autogen.sh
         ./configure
         make
         make check
       shell: alpine.sh {0}
+
   macOS-14-openssl-1-1:
     needs: ubuntu-latest-html-tests
     runs-on: macos-14
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Install dependencies
-      run: brew install autoconf automake fltk@1.3 openssl@1.1
+      run: brew install autoconf automake fltk@1.3 openssl@1.1 quickjs curl
     - name: autogen
       run: ./autogen.sh
     - name: configure
       run: |
         export PATH="/opt/homebrew/opt/fltk@1.3/bin:$PATH"
-        export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib"
-        export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include"
+        export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
+        export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include -I$QUICKJS_PREFIX/include"
         ./configure --disable-mbedtls
     - name: make
       run: make
@@ -221,27 +233,30 @@ jobs:
     - name: make distcheck
       run: |
         export PATH="/opt/homebrew/opt/fltk@1.3/bin:$PATH"
-        export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib"
-        export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include"
+        export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
+        export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include -I$QUICKJS_PREFIX/include"
         make distcheck
+
   macOS-14-openssl-3:
     needs: ubuntu-latest-html-tests
     runs-on: macos-14
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Remove old OpenSSL 1.1
       run: brew uninstall openssl@1.1
     - name: Install dependencies
-      run: brew install autoconf automake fltk@1.3 openssl@3
+      run: brew install autoconf automake fltk@1.3 openssl@3 quickjs curl
     - name: autogen
       run: ./autogen.sh
     - name: configure
       run: |
         export PATH="/opt/homebrew/opt/fltk@1.3/bin:$PATH"
-        export LDFLAGS="-L$(brew --prefix openssl@3)/lib"
-        export CPPFLAGS="-I$(brew --prefix openssl@3)/include"
+        export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
+        export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$QUICKJS_PREFIX/include"
         ./configure --disable-mbedtls
     - name: make
       run: make
@@ -250,9 +265,11 @@ jobs:
     - name: make distcheck
       run: |
         export PATH="/opt/homebrew/opt/fltk@1.3/bin:$PATH"
-        export LDFLAGS="-L$(brew --prefix openssl@3)/lib"
-        export CPPFLAGS="-I$(brew --prefix openssl@3)/include"
+        export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
+        export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$QUICKJS_PREFIX/include"
         make distcheck
+
   freebsd-14-openssl-3:
     needs: ubuntu-latest-html-tests
     runs-on: ubuntu-latest
@@ -266,7 +283,7 @@ jobs:
         usesh: true
         prepare: |
           set -x
-          pkg install -y automake fltk
+          pkg install -y automake fltk quickjs curl
         run: |
           set -x
           pwd
@@ -277,6 +294,7 @@ jobs:
           make
           make check
           ldd src/dillo
+
   windows-mbedtls:
     needs: ubuntu-latest-html-tests
     runs-on: windows-latest
