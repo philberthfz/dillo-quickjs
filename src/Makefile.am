@@ -3,7 +3,8 @@ AM_CPPFLAGS= \
 	-DDILLO_SYSCONF='"$(sysconfdir)/"' \
 	-DDILLO_DOCDIR='"$(docdir)/"' \
 	-DCUR_WORKING_DIR='"@BASE_CUR_WORKING_DIR@/src"' \
-	@LIBJPEG_CPPFLAGS@
+	@LIBJPEG_CPPFLAGS@ \
+	@QUICKJS_CPPFLAGS@
 
 AM_CFLAGS = @LIBPNG_CFLAGS@
 AM_CXXFLAGS = @LIBPNG_CFLAGS@ @FLTK_CXXFLAGS@
@@ -33,7 +34,8 @@ dillo_LDADD = \
 	@FLTK_LIBS@ \
 	@LIBJPEG_LIBS@ @LIBPNG_LIBS@ @LIBWEBP_LIBS@ @LIBZ_LIBS@ \
 	@LIBICONV_LIBS@ @LIBPTHREAD_LIBS@ @LIBX11_LIBS@ \
-	@BROTLI_LIBS@
+	@BROTLI_LIBS@ \
+	@QUICKJS_LIBS@
 
 dillo_LDFLAGS = \
 	@LIBPTHREAD_LDFLAGS@
@@ -153,7 +155,9 @@ dillo_SOURCES = \
 	findbar.cc \
 	findbar.hh \
 	xembed.cc \
-	xembed.hh
+	xembed.hh \
+	dillo_js.cc \
+	dillo_js.hh
 
 # https://www.gnu.org/software/automake/manual/html_node/Built-Sources-Example.html
 nodist_dillo_SOURCES = commit.h

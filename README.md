@@ -1,4 +1,6 @@
-# Dillo web browser
+# Dillo web browser (with QuickJS JavaScript Engine)
+
+> **Note**: This fork embeds Fabrice Bellard's [QuickJS](https://bellard.org/quickjs/) ES2023 engine into Dillo, providing client-side scripting, DOM/BOM manipulation, timers, fetch/XHR, and Web Storage under strict opt-in user control. See [README.quickjs.md](README.quickjs.md) for full details.
 
 Dillo is a multi-platform graphical web browser, known for its speed and
 small footprint, that is developed with a focus on personal security and

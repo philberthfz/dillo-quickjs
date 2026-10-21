@@ -657,6 +657,40 @@ iconv_old=yes,iconv_old=no)
 fi
 
 dnl ----------------------
+dnl Test for QuickJS & libcurl
+dnl ----------------------
+QUICKJS_CPPFLAGS=""
+QUICKJS_LIBS=""
+
+AC_MSG_CHECKING([for QuickJS])
+for dir in /opt/homebrew/opt/quickjs /usr/local /usr /opt/quickjs; do
+  if test -f "$dir/include/quickjs/quickjs.h" || test -f "$dir/include/quickjs.h"; then
+    if test -f "$dir/include/quickjs/quickjs.h"; then
+      QUICKJS_CPPFLAGS="-I$dir/include"
+    else
+      QUICKJS_CPPFLAGS="-I$dir/include -I$dir/include/quickjs"
+    fi
+    if test -f "$dir/lib/quickjs/libquickjs.a"; then
+      QUICKJS_LIBS="-L$dir/lib/quickjs -L$dir/lib -lquickjs"
+    elif test -f "$dir/lib/libquickjs.a" || test -f "$dir/lib/libquickjs.so" || test -f "$dir/lib/libquickjs.dylib"; then
+      QUICKJS_LIBS="-L$dir/lib -lquickjs"
+    fi
+    break
+  fi
+done
+
+if test -z "$QUICKJS_LIBS"; then
+  QUICKJS_LIBS="-lquickjs"
+  AC_MSG_RESULT([fallback to -lquickjs])
+else
+  AC_MSG_RESULT([found ($QUICKJS_CPPFLAGS $QUICKJS_LIBS)])
+fi
+
+QUICKJS_LIBS="$QUICKJS_LIBS -lcurl"
+AC_SUBST(QUICKJS_LIBS)
+AC_SUBST(QUICKJS_CPPFLAGS)
+
+dnl ----------------------
 dnl Test for POSIX threads
 dnl ----------------------
 dnl

@@ -18,7 +18,9 @@ missing
 tags
 /src/commit.h
 /src/dillo
+/src/dilloc
 /doc/dillo.1
+/doc/user_help.html
 /dpi/[^/]*\.dpi
 /dpid/dpid
 /dpid/dpidc
