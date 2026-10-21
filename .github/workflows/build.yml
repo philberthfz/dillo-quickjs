@@ -235,7 +235,7 @@ jobs:
         export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
         export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
         export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include -I$QUICKJS_PREFIX/include"
-        ./configure --disable-mbedtls
+        ./configure --disable-mbedtls --disable-xembed
     - name: make
       run: make
     - name: make check
@@ -246,7 +246,7 @@ jobs:
         export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
         export LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
         export CPPFLAGS="-I$(brew --prefix openssl@1.1)/include -I$QUICKJS_PREFIX/include"
-        make distcheck
+        make distcheck DISTCHECK_CONFIGURE_FLAGS="--disable-mbedtls --disable-xembed"
 
   macOS-14-openssl-3:
     needs: ubuntu-latest-html-tests
@@ -267,7 +267,7 @@ jobs:
         export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
         export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
         export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$QUICKJS_PREFIX/include"
-        ./configure --disable-mbedtls
+        ./configure --disable-mbedtls --disable-xembed
     - name: make
       run: make
     - name: make check
@@ -278,7 +278,7 @@ jobs:
         export QUICKJS_PREFIX="$(brew --prefix quickjs 2>/dev/null || echo /opt/homebrew/opt/quickjs)"
         export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$QUICKJS_PREFIX/lib/quickjs -L$QUICKJS_PREFIX/lib"
         export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$QUICKJS_PREFIX/include"
-        make distcheck
+        make distcheck DISTCHECK_CONFIGURE_FLAGS="--disable-mbedtls --disable-xembed"
 
   freebsd-14-openssl-3:
     needs: ubuntu-latest-html-tests

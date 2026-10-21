@@ -36,6 +36,12 @@
  * - Console: log(), info(), warn(), error()
  */
 
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#ifndef __BSD_VISIBLE
+#define __BSD_VISIBLE 1
+#endif
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

@@ -312,6 +312,11 @@ CXXFLAGS=$old_cxxflags
 LIBS=$old_libs
 AC_LANG_POP([C++])
 
+if test -z "$LIBX11_LIBS" && test "x$enable_xembed" = "xyes"; then
+  AC_MSG_NOTICE([X11 not found; disabling XEmbed])
+  enable_xembed="no"
+fi
+
 dnl ----------------
 dnl Test for libjpeg
 dnl ----------------
@@ -956,7 +961,7 @@ if test "x$enable_rtfl" = "xyes" ; then
   CXXFLAGS="$CXXFLAGS -DDBG_RTFL"
 fi
 if test "x$enable_xembed" = "xno" ; then
-  CXXFLAGS="$CFLAGS -DDISABLE_XEMBED"
+  CXXFLAGS="$CXXFLAGS -DDISABLE_XEMBED"
 fi
 
 dnl -----------------------
@@ -998,6 +1003,13 @@ if eval "test x$GCC = xyes"; then
   # Ignore warning on FLTK headers from newer gcc versions
   CXXFLAGS="$CXXFLAGS -Wno-cast-function-type"
 fi
+
+case $target in
+  *-*-*bsd*|*-*-dragonfly*)
+    CFLAGS="$CFLAGS -D__BSD_VISIBLE=1"
+    CXXFLAGS="$CXXFLAGS -D__BSD_VISIBLE=1"
+    ;;
+esac
 
 dnl ----------------------------------
 dnl Check if we can use the git commit
