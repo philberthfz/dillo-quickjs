@@ -27,6 +27,10 @@
 
 #include <FL/Fl.H>
 #include <zlib.h>
+#ifdef zlibVersion
+#undef zlibVersion
+extern "C" const char *zlibVersion(void);
+#endif
 
 #ifdef ENABLE_BROTLI
 #include <brotli/decode.h>
@@ -131,7 +135,7 @@ static void print_features()
 #else
          " -BROTLI"
 #endif
-#if !( defined(DISABLE_XEMBED) || defined(WIN32) || defined(__APPLE__) )
+#if !( defined(DISABLE_XEMBED) || defined(WIN32) )
          " +XEMBED"
 #else
          " -XEMBED"

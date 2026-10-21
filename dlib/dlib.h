@@ -44,18 +44,18 @@ extern "C" {
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 /* Prevent negative char values from being transformed in negative integers.
- * Instead force the value to be casted first to unsigned char, then to int. */
-static inline int dIsalnum(unsigned char c)  { return isalnum(c); }
-static inline int dIsalpha(unsigned char c)  { return isalpha(c); }
-static inline int dIscntrl(unsigned char c)  { return iscntrl(c); }
-static inline int dIsdigit(unsigned char c)  { return isdigit(c); }
-static inline int dIsprint(unsigned char c)  { return isprint(c); }
-static inline int dIspunct(unsigned char c)  { return ispunct(c); }
-static inline int dIsspace(unsigned char c)  { return isspace(c); }
-static inline int dIsxdigit(unsigned char c) { return isxdigit(c); }
-static inline int dTolower(unsigned char c)  { return tolower(c); }
+ * Explicitly handle EOF (-1) so it never gets cast to unsigned char 255 (which isalpha() treats as letter on macOS). */
+static inline int dIsalnum(int c)  { return (c == EOF || c < 0) ? 0 : isalnum((unsigned char)c); }
+static inline int dIsalpha(int c)  { return (c == EOF || c < 0) ? 0 : isalpha((unsigned char)c); }
+static inline int dIscntrl(int c)  { return (c == EOF || c < 0) ? 0 : iscntrl((unsigned char)c); }
+static inline int dIsdigit(int c)  { return (c == EOF || c < 0) ? 0 : isdigit((unsigned char)c); }
+static inline int dIsprint(int c)  { return (c == EOF || c < 0) ? 0 : isprint((unsigned char)c); }
+static inline int dIspunct(int c)  { return (c == EOF || c < 0) ? 0 : ispunct((unsigned char)c); }
+static inline int dIsspace(int c)  { return (c == EOF || c < 0) ? 0 : isspace((unsigned char)c); }
+static inline int dIsxdigit(int c) { return (c == EOF || c < 0) ? 0 : isxdigit((unsigned char)c); }
+static inline int dTolower(int c)  { return (c == EOF || c < 0) ? c : tolower((unsigned char)c); }
 /* Provide portable isascii */
-static inline int dIsascii(unsigned char c)  { return (c & ~0x7f) == 0; }
+static inline int dIsascii(int c)  { return (c >= 0 && c <= 127); }
 
 #define D_ASCII_TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) - 0x20 : (c))
 #define D_ASCII_TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) + 0x20 : (c))

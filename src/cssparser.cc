@@ -481,7 +481,7 @@ int CssParser::getChar()
    if (bufptr >= buflen)
       c = EOF;
    else
-      c = buf[bufptr];
+      c = (unsigned char)buf[bufptr];
 
    /* The buffer pointer is increased in any case, so that ungetChar works
     * correctly at the end of the buffer. */
@@ -494,7 +494,8 @@ int CssParser::getChar()
  */
 void CssParser::ungetChar()
 {
-   bufptr--;
+   if (bufptr > 0)
+      bufptr--;
 }
 
 /**
@@ -541,6 +542,11 @@ void CssParser::nextToken()
       } else {
          break;
       }
+   }
+
+   if (c == EOF) {
+      ttype = CSS_TK_END;
+      return;
    }
 
    // handle negative numbers
