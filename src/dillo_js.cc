@@ -37,6 +37,7 @@
  */
 
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#undef _POSIX_C_SOURCE
 #ifndef __BSD_VISIBLE
 #define __BSD_VISIBLE 1
 #endif

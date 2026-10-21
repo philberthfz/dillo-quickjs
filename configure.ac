@@ -1006,8 +1006,8 @@ fi
 
 case $target in
   *-*-*bsd*|*-*-dragonfly*)
-    CFLAGS="$CFLAGS -D__BSD_VISIBLE=1"
-    CXXFLAGS="$CXXFLAGS -D__BSD_VISIBLE=1"
+    # libc++ on BSD requires isascii in locale headers, which is suppressed by _POSIX_C_SOURCE
+    CXXFLAGS="`echo $CXXFLAGS | sed 's/-D_POSIX_C_SOURCE=200112L//'`"
     ;;
 esac
 
