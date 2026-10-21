@@ -235,6 +235,18 @@ static void Control_req_prepare_reply(struct control_req *req)
    } else if (strcmp(cmd, "reload") == 0) {
       a_UIcmd_reload_all_active();
       dStr_sprintfa(r, "0\n");
+   } else if (strcmp(cmd, "back") == 0) {
+      a_UIcmd_back(bw);
+      dStr_sprintfa(r, "0\n");
+   } else if (strcmp(cmd, "forward") == 0 || strcmp(cmd, "forw") == 0) {
+      a_UIcmd_forw(bw);
+      dStr_sprintfa(r, "0\n");
+   } else if (strcmp(cmd, "stop") == 0) {
+      a_UIcmd_stop(bw);
+      dStr_sprintfa(r, "0\n");
+   } else if (strcmp(cmd, "home") == 0) {
+      a_UIcmd_home(bw, 0);
+      dStr_sprintfa(r, "0\n");
    } else if (strcmp(cmd, "ready") == 0) {
       dStr_sprintfa(r, "%d\n", a_UIcmd_has_finished(bw) ? 0 : 1);
    } else if (strncmp(cmd, "open ", 5) == 0) {
