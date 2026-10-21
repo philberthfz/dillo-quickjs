@@ -17,7 +17,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev libcurl4-openssl-dev xvfb x11-apps x11-utils imagemagick
-        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
+        git clone --depth 1 https://github.com/bellard/quickjs.git /tmp/quickjs
+        make -C /tmp/quickjs -j$(nproc)
+        sudo make -C /tmp/quickjs install
 
     - name: autogen
       run: ./autogen.sh
@@ -69,7 +71,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install -y libfltk1.3-dev libssl-dev libpng-dev libjpeg-dev libwebp-dev libbrotli-dev libcurl4-openssl-dev xvfb x11-apps x11-utils imagemagick
-        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
+        git clone --depth 1 https://github.com/bellard/quickjs.git /tmp/quickjs
+        make -C /tmp/quickjs -j$(nproc)
+        sudo make -C /tmp/quickjs install
     - name: autogen
       run: ./autogen.sh
     - name: Make install dir
@@ -102,7 +106,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install -y libfltk1.3-dev libcurl4-openssl-dev
-        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
+        git clone --depth 1 https://github.com/bellard/quickjs.git /tmp/quickjs
+        make -C /tmp/quickjs -j$(nproc)
+        sudo make -C /tmp/quickjs install
     - name: autogen
       run: ./autogen.sh
     - name: configure
@@ -126,7 +132,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install -y libfltk1.3-dev libmbedtls-dev libcurl4-openssl-dev
-        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
+        git clone --depth 1 https://github.com/bellard/quickjs.git /tmp/quickjs
+        make -C /tmp/quickjs -j$(nproc)
+        sudo make -C /tmp/quickjs install
     - name: autogen
       run: ./autogen.sh
     - name: configure
@@ -150,7 +158,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install -y libfltk1.3-dev libssl-dev libcurl4-openssl-dev
-        sudo apt install -y libqjs-dev || sudo apt install -y libquickjs-dev || true
+        git clone --depth 1 https://github.com/bellard/quickjs.git /tmp/quickjs
+        make -C /tmp/quickjs -j$(nproc)
+        sudo make -C /tmp/quickjs install
     - name: autogen
       run: ./autogen.sh
     - name: configure
