@@ -42,6 +42,19 @@ void a_Html_form_submit2(void *v_form);
 void a_Html_form_reset2(void *v_form);
 void a_Html_form_display_hiddens2(void *v_form, bool display);
 
+int a_Html_form_get_input_count(void *v_form);
+void *a_Html_form_get_input(void *v_form, int idx);
+const char *a_Html_form_get_action(void *v_form);
+const char *a_Html_form_get_method(void *v_form);
+
+const char *a_Html_input_get_name(void *v_input);
+const char *a_Html_input_get_type(void *v_input);
+const char *a_Html_input_get_value(void *v_input);
+void a_Html_input_set_value(void *v_input, const char *val);
+int a_Html_input_get_checked(void *v_input);
+void a_Html_input_set_checked(void *v_input, int checked);
+void *a_Html_get_current_input(DilloHtml *html);
+
 
 /*
  * Form parsing functions

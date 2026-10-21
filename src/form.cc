@@ -12,6 +12,7 @@
 
 #include "form.hh"
 #include "html_common.hh"
+#include "dillo_js.hh"
 
 #include <errno.h>
 #include <iconv.h>
@@ -270,6 +271,135 @@ void a_Html_form_display_hiddens2(void *vform, bool display)
    ((DilloHtmlForm *)vform)->display_hiddens(display);
 }
 
+int a_Html_form_get_input_count(void *v_form)
+{
+   if (!v_form) return 0;
+   DilloHtmlForm *form = (DilloHtmlForm *)v_form;
+   return form->inputs ? form->inputs->size() : 0;
+}
+
+void *a_Html_form_get_input(void *v_form, int idx)
+{
+   if (!v_form) return NULL;
+   DilloHtmlForm *form = (DilloHtmlForm *)v_form;
+   if (!form->inputs || idx < 0 || idx >= form->inputs->size()) return NULL;
+   return form->inputs->get(idx);
+}
+
+const char *a_Html_form_get_action(void *v_form)
+{
+   if (!v_form) return "";
+   DilloHtmlForm *form = (DilloHtmlForm *)v_form;
+   return form->action ? URL_STR(form->action) : "";
+}
+
+const char *a_Html_form_get_method(void *v_form)
+{
+   if (!v_form) return "GET";
+   DilloHtmlForm *form = (DilloHtmlForm *)v_form;
+   return (form->method == DILLO_HTML_METHOD_POST) ? "POST" : "GET";
+}
+
+const char *a_Html_input_get_name(void *v_input)
+{
+   if (!v_input) return "";
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   return inp->name ? inp->name : "";
+}
+
+const char *a_Html_input_get_type(void *v_input)
+{
+   if (!v_input) return "unknown";
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   switch (inp->type) {
+   case DILLO_HTML_INPUT_TEXT: return "text";
+   case DILLO_HTML_INPUT_PASSWORD: return "password";
+   case DILLO_HTML_INPUT_CHECKBOX: return "checkbox";
+   case DILLO_HTML_INPUT_RADIO: return "radio";
+   case DILLO_HTML_INPUT_IMAGE: return "image";
+   case DILLO_HTML_INPUT_FILE: return "file";
+   case DILLO_HTML_INPUT_BUTTON: return "button";
+   case DILLO_HTML_INPUT_HIDDEN: return "hidden";
+   case DILLO_HTML_INPUT_SUBMIT:
+   case DILLO_HTML_INPUT_BUTTON_SUBMIT: return "submit";
+   case DILLO_HTML_INPUT_RESET:
+   case DILLO_HTML_INPUT_BUTTON_RESET: return "reset";
+   case DILLO_HTML_INPUT_SELECT:
+   case DILLO_HTML_INPUT_SEL_LIST: return "select";
+   case DILLO_HTML_INPUT_TEXTAREA: return "textarea";
+   default: return "text";
+   }
+}
+
+const char *a_Html_input_get_value(void *v_input)
+{
+   if (!v_input) return "";
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   Resource *res = inp->getResource();
+   if (!res) {
+      return inp->init_str ? inp->init_str : "";
+   }
+   switch (inp->type) {
+   case DILLO_HTML_INPUT_TEXT:
+   case DILLO_HTML_INPUT_PASSWORD:
+   case DILLO_HTML_INPUT_INDEX:
+   case DILLO_HTML_INPUT_HIDDEN:
+      return ((EntryResource *)res)->getText();
+   case DILLO_HTML_INPUT_TEXTAREA:
+      return ((MultiLineTextResource *)res)->getText();
+   case DILLO_HTML_INPUT_BUTTON:
+   case DILLO_HTML_INPUT_SUBMIT:
+   case DILLO_HTML_INPUT_RESET:
+      return inp->init_str ? inp->init_str : "";
+   case DILLO_HTML_INPUT_CHECKBOX:
+   case DILLO_HTML_INPUT_RADIO:
+      return inp->init_str ? inp->init_str : "on";
+   default:
+      return inp->init_str ? inp->init_str : "";
+   }
+}
+
+void a_Html_input_set_value(void *v_input, const char *val)
+{
+   if (!v_input || !val) return;
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   Resource *res = inp->getResource();
+   if (res) {
+      if (inp->type == DILLO_HTML_INPUT_TEXT ||
+          inp->type == DILLO_HTML_INPUT_PASSWORD ||
+          inp->type == DILLO_HTML_INPUT_INDEX ||
+          inp->type == DILLO_HTML_INPUT_HIDDEN) {
+         ((EntryResource *)res)->setText(val);
+      } else if (inp->type == DILLO_HTML_INPUT_TEXTAREA) {
+         ((MultiLineTextResource *)res)->setText(val);
+      }
+   }
+   dFree(inp->init_str);
+   inp->init_str = dStrdup(val);
+}
+
+int a_Html_input_get_checked(void *v_input)
+{
+   if (!v_input) return 0;
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   Resource *res = inp->getResource();
+   if (res && (inp->type == DILLO_HTML_INPUT_CHECKBOX || inp->type == DILLO_HTML_INPUT_RADIO)) {
+      return ((ToggleButtonResource *)res)->isActivated() ? 1 : 0;
+   }
+   return inp->init_val ? 1 : 0;
+}
+
+void a_Html_input_set_checked(void *v_input, int checked)
+{
+   if (!v_input) return;
+   DilloHtmlInput *inp = (DilloHtmlInput *)v_input;
+   Resource *res = inp->getResource();
+   if (res && (inp->type == DILLO_HTML_INPUT_CHECKBOX || inp->type == DILLO_HTML_INPUT_RADIO)) {
+      ((ToggleButtonResource *)res)->setActivated(checked != 0);
+   }
+   inp->init_val = (checked != 0);
+}
+
 /*
  * Form parsing functions
  */
@@ -334,6 +464,11 @@ static DilloHtmlInput *Html_get_current_input(DilloHtml *html)
 
    return (inputs && inputs->size() > 0) ?
             inputs->get (inputs->size() - 1) : NULL;
+}
+
+void *a_Html_get_current_input(DilloHtml *html)
+{
+   return (void*)Html_get_current_input(html);
 }
 
 /**
@@ -460,6 +595,8 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
    /* Get 'value', 'name' and 'type' */
    value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
    name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
+   if (!name)
+      name = a_Html_get_attr_wdef(html, tag, tagsize, "id", NULL);
    type = a_Html_get_attr_wdef(html, tag, tagsize, "type", "");
 
    init_str = NULL;
@@ -1076,7 +1213,16 @@ void DilloHtmlForm::eventHandler(Resource *resource, EventButton *event)
    } else {
       DilloHtmlInput *input = getInput(resource);
       if (input) {
+         if (prefs.enable_javascript && html->js_context) {
+            if (!a_Dillo_JS_dispatch_input_click(html->js_context, input)) {
+               return;
+            }
+         }
          input->activate (this, num_entry_fields, event);
+         if (prefs.enable_javascript && html->js_context &&
+             (input->type == DILLO_HTML_INPUT_CHECKBOX || input->type == DILLO_HTML_INPUT_RADIO)) {
+            a_Dillo_JS_dispatch_input_change(html->js_context, input);
+         }
       } else {
         MSG("DilloHtmlForm::eventHandler: ERROR, input not found!\n");
       }
@@ -1089,6 +1235,12 @@ void DilloHtmlForm::eventHandler(Resource *resource, EventButton *event)
  */
 void DilloHtmlForm::submit(DilloHtmlInput *active_input, EventButton *event)
 {
+   if (prefs.enable_javascript && html->js_context && (active_input != NULL || event != NULL)) {
+      if (!a_Dillo_JS_dispatch_form_submit(html->js_context, this)) {
+         return;
+      }
+   }
+
    if (!dStrAsciiCasecmp(URL_SCHEME(html->page_url), "https") &&
        dStrAsciiCasecmp(URL_SCHEME(action), "https")) {
       int choice = a_Dialog_choice("Dillo: Insecure form submission",
@@ -1582,6 +1734,11 @@ void DilloHtmlForm::imageInputMultipartAppend(Dstr *data, const char *boundary,
  */
 void DilloHtmlForm::reset ()
 {
+   if (prefs.enable_javascript && html->js_context) {
+      if (!a_Dillo_JS_dispatch_form_reset(html->js_context, this)) {
+         return;
+      }
+   }
    int size = inputs->size();
    for (int i = 0; i < size; i++)
       inputs->get(i)->reset();

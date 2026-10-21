@@ -49,12 +49,6 @@ void a_Cookies_init(void)
 /** The maximum length of a line in the cookie file */
 #define LINE_MAXLEN 4096
 
-typedef enum {
-   COOKIE_ACCEPT,
-   COOKIE_ACCEPT_SESSION,
-   COOKIE_DENY
-} CookieControlAction;
-
 typedef struct {
    CookieControlAction action;
    char *domain;
@@ -366,6 +360,16 @@ static CookieControlAction Cookies_control_check_domain(const char *domain)
 static CookieControlAction Cookies_control_check(const DilloUrl *url)
 {
    return Cookies_control_check_domain(URL_HOST(url));
+}
+
+int a_Cookies_control_check(const DilloUrl *url)
+{
+   if (!url) return (int)COOKIE_DENY;
+   const char *host = URL_HOST(url);
+   if (!host || !host[0]) {
+      return (int)Cookies_control_check_domain("localhost");
+   }
+   return (int)Cookies_control_check(url);
 }
 
 #endif /* !DISABLE_COOKIES */

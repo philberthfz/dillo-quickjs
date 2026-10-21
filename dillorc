@@ -41,6 +41,35 @@
 # (While browsing, this can be changed from the tools/settings menu.)
 #parse_embedded_css=YES
 
+# Enable embedded QuickJS JavaScript interpreter.
+# Defaults to NO for backward compatibility and fast, lightweight browsing.
+# Set to YES or pass the -j / --enable-javascript command-line flag to opt in.
+#enable_javascript=NO
+
+# QuickJS Web Storage & Cookie access settings (requires enable_javascript=YES)
+#
+# js_sessionstorage: NO (default) | PERMIT
+# - NO: window.sessionStorage is undefined (Dillo current behavior)
+# - PERMIT: Ephemeral in-memory storage only; discarded when tab/page closes
+#js_sessionstorage=NO
+#
+# js_localstorage: NO (default) | EPHEMERAL | PERMIT
+# - NO: window.localStorage is undefined (Dillo current behavior)
+# - EPHEMERAL: RAM only during browser session; never touches disk
+# - PERMIT: Allows persistent disk storage ONLY for domains listed in ~/.dillo/storagerc
+#js_localstorage=NO
+#
+# js_document_cookie: NO (default) | RESTRICTED
+# (Note: Unrestricted cookie access is never permitted)
+# - NO: document.cookie returns "" and writes are no-ops (Dillo current behavior)
+# - RESTRICTED: First-party same-origin only, HttpOnly cookies invisible,
+#   and strictly gated by domain permissions in ~/.dillo/cookiesrc
+#js_document_cookie=NO
+#
+# Default storage quota per origin in kilobytes (default 512 KB)
+# Zero website-triggered requests permitted to increase this quota.
+#js_storage_quota_kb=512
+
 # Change the buffering scheme for drawing
 # 0 no double buffering - useful for debugging
 # 1 light buffering using a single back buffer for all windows

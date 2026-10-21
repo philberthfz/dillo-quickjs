@@ -40,6 +40,7 @@
 #include "html_common.hh"
 #include "form.hh"
 #include "table.hh"
+#include "dillo_js.hh"
 
 #include "dw/textblock.hh"
 #include "dw/bullet.hh"
@@ -138,7 +139,10 @@ static int
    i_TD = a_Html_tag_index("td"),
    i_TR = a_Html_tag_index("tr"),
    i_TBODY = a_Html_tag_index("tbody"),
-   i_TH = a_Html_tag_index("th");
+   i_TH = a_Html_tag_index("th"),
+   i_FORM = a_Html_tag_index("form"),
+   i_INPUT = a_Html_tag_index("input"),
+   i_IMG = a_Html_tag_index("img");
 
 
 /*-----------------------------------------------------------------------------
@@ -284,6 +288,46 @@ void a_Html_form_display_hiddens(void *v_html, void *v_form, bool_t display)
       /* it's still valid */
       a_Html_form_display_hiddens2(v_form, (display != 0));
    }
+}
+
+int a_Html_get_form_count(void *v_html)
+{
+   if (!v_html) return 0;
+   DilloHtml *html = (DilloHtml*)v_html;
+   return html->forms ? html->forms->size() : 0;
+}
+
+void *a_Html_get_form(void *v_html, int idx)
+{
+   if (!v_html) return NULL;
+   DilloHtml *html = (DilloHtml*)v_html;
+   if (!html->forms || idx < 0 || idx >= html->forms->size()) return NULL;
+   return html->forms->get(idx);
+}
+
+const char *a_Html_get_url(void *v_html)
+{
+   if (!v_html) return "";
+   DilloHtml *html = (DilloHtml*)v_html;
+   return html->page_url ? URL_STR(html->page_url) : "";
+}
+
+const char *a_Html_get_title(void *v_html)
+{
+   if (!v_html) return "";
+   DilloHtml *html = (DilloHtml*)v_html;
+   if (html->page_url) {
+      const char *t = a_History_get_title_by_url(html->page_url, 0);
+      if (t) return t;
+   }
+   return "";
+}
+
+void *a_Html_get_bw(void *v_html)
+{
+   if (!v_html) return NULL;
+   DilloHtml *html = (DilloHtml*)v_html;
+   return html->bw;
 }
 
 /**
@@ -510,6 +554,12 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
    links = new misc::SimpleVector <DilloUrl*> (64);
    images = new misc::SimpleVector <DilloHtmlImage*> (16);
 
+   if (prefs.enable_javascript) {
+      js_context = a_Dillo_JS_context_new(this, page_url ? URL_STR(page_url) : "");
+   } else {
+      js_context = NULL;
+   }
+
    /* Initialize the main widget */
    initDw();
    /* Hook destructor to the dw delete call */
@@ -567,6 +617,11 @@ DilloHtml::~DilloHtml()
       dFree(img);
    }
    delete (images);
+
+   if (js_context) {
+      a_Dillo_JS_context_free(js_context);
+      js_context = NULL;
+   }
 
    delete styleEngine;
 }
@@ -659,6 +714,10 @@ void DilloHtml::finishParsing(int ClientKey)
 
    /* Remove this client from our active list */
    a_Bw_close_client(bw, ClientKey);
+
+   if (prefs.enable_javascript && js_context) {
+      a_Dillo_JS_dispatch_page_load(js_context);
+   }
 }
 
 /**
@@ -807,6 +866,11 @@ bool DilloHtml::HtmlLinkReceiver::click (Widget *widget, int link, int img,
    }
 
    if (link != -1) {
+      if (prefs.enable_javascript && html->js_context) {
+         if (!a_Dillo_JS_dispatch_link_click(html->js_context, link)) {
+            return true; /* Link navigation canceled by JS click handler */
+         }
+      }
       DilloUrl *url = html->links->get(link);
       _MSG("clicked on URL %d: %s\n", link, a_Url_str (url));
 
@@ -1144,6 +1208,10 @@ static void Html_process_space(DilloHtml *html, const char *space,
    int i, offset;
    DilloHtmlParseMode parse_mode = S_TOP(html)->parse_mode;
 
+   if (prefs.enable_javascript && html->js_context) {
+      a_Dillo_JS_on_text(html->js_context, " ", 1);
+   }
+
    if (S_TOP(html)->display_none) {
       /* do nothing */
    } else if (parse_mode == DILLO_HTML_PARSE_MODE_STASH) {
@@ -1228,6 +1296,10 @@ static void Html_process_word(DilloHtml *html, const char *word, int size)
    int i, j, start;
    char *Pword;
    DilloHtmlParseMode parse_mode = S_TOP(html)->parse_mode;
+
+   if (prefs.enable_javascript && html->js_context) {
+      a_Dillo_JS_on_text(html->js_context, word, size);
+   }
 
    if (S_TOP(html)->display_none)
       return;
@@ -1744,7 +1816,10 @@ static void Html_tag_open_script(DilloHtml *html, const char *tag, int tagsize)
  */
 static void Html_tag_close_script(DilloHtml *html)
 {
-   /* eventually the stash will be sent to an interpreter for parsing */
+   if (prefs.enable_javascript && html->js_context && html->Stash && html->Stash->str && html->Stash->len > 0) {
+      a_Dillo_JS_eval(html->js_context, html->Stash->str, html->Stash->len,
+                      html->page_url ? URL_STR(html->page_url) : "<script>");
+   }
 }
 
 /**
@@ -4106,6 +4181,19 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       _MSG("Html_process_tag Open : %s\n", Tags[ni].name);
       Tags[ni].open (html, tag, tagsize);
 
+      if (prefs.enable_javascript && html->js_context) {
+         void *form_ptr = (ni == i_FORM && html->forms && html->forms->size() > 0)
+                          ? (void*)html->getCurrentForm() : NULL;
+         void *input_ptr = (ni == i_INPUT || ni == i_BUTTON || ni == i_SELECT || ni == i_TEXTAREA)
+                           ? a_Html_get_current_input(html) : NULL;
+         int link_idx = (ni == i_A && html->links && html->links->size() > 0)
+                        ? (html->links->size() - 1) : -1;
+         int img_idx = (ni == i_IMG && html->images && html->images->size() > 0)
+                       ? (html->images->size() - 1) : -1;
+         a_Dillo_JS_on_tag_open(html->js_context, Tags[ni].name, tag, tagsize,
+                                form_ptr, input_ptr, link_idx, img_idx);
+      }
+
       if (! S_TOP(html)->display_none) {
          switch (html->style ()->display) {
             case DISPLAY_BLOCK:
@@ -4170,6 +4258,11 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
 
          _MSG("Html_process_tag Close: %s\n", Tags[ni].name);
          Html_tag_cleanup_at_close(html, ni);
+
+         if (prefs.enable_javascript && html->js_context) {
+            a_Dillo_JS_on_tag_close(html->js_context, Tags[ni].name);
+         }
+
          /* This was a close tag */
          html->ReqTagClose = false;
       }

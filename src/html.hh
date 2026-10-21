@@ -31,6 +31,12 @@ void a_Html_form_submit(void *v_html, void *v_form);
 void a_Html_form_reset(void *v_html, void *v_form);
 void a_Html_form_display_hiddens(void *v_html, void *v_form, bool_t display);
 
+int a_Html_get_form_count(void *v_html);
+void *a_Html_get_form(void *v_html, int idx);
+const char *a_Html_get_url(void *v_html);
+const char *a_Html_get_title(void *v_html);
+void *a_Html_get_bw(void *v_html);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

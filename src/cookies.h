@@ -18,12 +18,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
+typedef enum {
+   COOKIE_ACCEPT,
+   COOKIE_ACCEPT_SESSION,
+   COOKIE_DENY
+} CookieControlAction;
+
 void  a_Cookies_init( void );
 
 #ifdef DISABLE_COOKIES
 # define a_Cookies_get_query(url, requester, r)  dStrdup("")
 # define a_Cookies_set()     ;
 # define a_Cookies_freeall() ;
+# define a_Cookies_control_check(url) (2)
 #else
   char *a_Cookies_get_query(const DilloUrl *query_url,
                             const DilloUrl *requester,
@@ -31,6 +38,7 @@ void  a_Cookies_init( void );
   void  a_Cookies_set(Dlist *cookie_string, const DilloUrl *set_url,
                       const char *server_date);
   void  a_Cookies_freeall( void );
+  int   a_Cookies_control_check(const DilloUrl *url);
 #endif
 
 

@@ -38,6 +38,9 @@
 #include "uicmd.hh"
 #include "dlib/dlib.h"
 #include "prefs.h"
+#ifdef ENABLE_QUICKJS
+#include "dillo_js.hh"
+#endif
 
 /** Maximum initial size for the automatically-growing data buffer */
 #define MAX_INIT_BUF  1024*1024
@@ -917,6 +920,23 @@ static void Cache_parse_header(CacheEntry_t *entry)
             if (!web->requester || safe_redirect ||
                 a_Url_same_organization(entry->Url, web->requester)) {
                char *server_date = Cache_parse_field(header, "Date");
+#ifdef ENABLE_QUICKJS
+               for (int ci = 0; ci < dList_length(Cookies); ci++) {
+                  const char *cstr = (const char *)dList_nth_data(Cookies, ci);
+                  if (cstr && a_Misc_strcasestr(cstr, "HttpOnly")) {
+                     const char *eq = strchr(cstr, '=');
+                     if (eq) {
+                        char cname[256];
+                        size_t nlen = eq - cstr;
+                        if (nlen > 255) nlen = 255;
+                        strncpy(cname, cstr, nlen);
+                        cname[nlen] = '\0';
+                        dStrstrip(cname);
+                        a_Dillo_JS_register_httponly_cookie(URL_HOST(entry->Url), cname);
+                     }
+                  }
+               }
+#endif
                a_Cookies_set(Cookies, entry->Url, server_date);
                dFree(server_date);
                break;

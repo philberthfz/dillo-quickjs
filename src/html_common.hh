@@ -216,6 +216,8 @@ public:  //BUG: for now everything is public
    lout::misc::SimpleVector<DilloHtmlImage*> *images;
    dw::ImageMapsList maps;
 
+   void *js_context;
+
 private:
    void freeParseData();
    void initDw();  /* Used by the constructor */

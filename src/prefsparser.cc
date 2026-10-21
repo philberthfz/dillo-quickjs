@@ -38,7 +38,10 @@ typedef enum {
    PREFS_DOUBLE,
    PREFS_FRACTION_100,
    PREFS_GEOMETRY,
-   PREFS_PANEL_SIZE
+   PREFS_PANEL_SIZE,
+   PREFS_JS_SESSIONSTORAGE,
+   PREFS_JS_LOCALSTORAGE,
+   PREFS_JS_DOCUMENT_COOKIE
 } PrefType_t;
 
 typedef struct {
@@ -132,6 +135,26 @@ static int parseOption(char *name, char *value,
       else /* default to "medium" */
          prefs.panel_size = P_medium;
       break;
+   case PREFS_JS_SESSIONSTORAGE:
+      if (!dStrAsciiCasecmp(value, "permit") || !dStrAsciiCasecmp(value, "yes") || !dStrAsciiCasecmp(value, "true"))
+         *(int *)node->pref = JS_STORAGE_PERMIT;
+      else
+         *(int *)node->pref = JS_STORAGE_NO;
+      break;
+   case PREFS_JS_LOCALSTORAGE:
+      if (!dStrAsciiCasecmp(value, "permit"))
+         *(int *)node->pref = JS_LOCALSTORAGE_PERMIT;
+      else if (!dStrAsciiCasecmp(value, "ephemeral") || !dStrAsciiCasecmp(value, "ram") || !dStrAsciiCasecmp(value, "memory"))
+         *(int *)node->pref = JS_LOCALSTORAGE_EPHEMERAL;
+      else
+         *(int *)node->pref = JS_LOCALSTORAGE_NO;
+      break;
+   case PREFS_JS_DOCUMENT_COOKIE:
+      if (!dStrAsciiCasecmp(value, "restricted") || !dStrAsciiCasecmp(value, "permit") || !dStrAsciiCasecmp(value, "yes"))
+         *(int *)node->pref = JS_COOKIE_RESTRICTED;
+      else
+         *(int *)node->pref = JS_COOKIE_NO;
+      break;
    default:
       MSG_WARN("prefs: {%s} IS recognized but not handled!\n", name);
       break;   /* Not reached */
@@ -156,6 +179,7 @@ void PrefsParser::parse(FILE *fp)
       { "bg_color", &prefs.bg_color, PREFS_COLOR, 0 },
       { "buffered_drawing", &prefs.buffered_drawing, PREFS_INT32, 0 },
       { "contrast_visited_color", &prefs.contrast_visited_color, PREFS_BOOL, 0 },
+      { "enable_javascript", &prefs.enable_javascript, PREFS_BOOL, 0 },
       { "enterpress_forces_submit", &prefs.enterpress_forces_submit,
         PREFS_BOOL, 0 },
       { "focus_new_tab", &prefs.focus_new_tab, PREFS_BOOL, 0 },
@@ -187,6 +211,10 @@ void PrefsParser::parse(FILE *fp)
       { "load_images", &prefs.load_images, PREFS_BOOL, 0 },
       { "mark_unloaded_images", &prefs.mark_unloaded_images, PREFS_BOOL, 0 },
       { "ignore_image_formats", &prefs.ignore_image_formats, PREFS_STRING, 0 },
+      { "js_document_cookie", &prefs.js_document_cookie, PREFS_JS_DOCUMENT_COOKIE, 0 },
+      { "js_localstorage", &prefs.js_localstorage, PREFS_JS_LOCALSTORAGE, 0 },
+      { "js_sessionstorage", &prefs.js_sessionstorage, PREFS_JS_SESSIONSTORAGE, 0 },
+      { "js_storage_quota_kb", &prefs.js_storage_quota_kb, PREFS_INT32, 0 },
       { "load_background_images", &prefs.load_background_images, PREFS_BOOL, 0 },
       { "load_stylesheets", &prefs.load_stylesheets, PREFS_BOOL, 0 },
       { "middle_click_drags_page", &prefs.middle_click_drags_page,

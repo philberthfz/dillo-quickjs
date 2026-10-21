@@ -34,6 +34,23 @@ extern "C" {
 /** Panel sizes. */
 enum { P_tiny = 0, P_small, P_medium };
 
+/* JavaScript Web Storage & Cookie access modes */
+enum {
+   JS_STORAGE_NO = 0,
+   JS_STORAGE_PERMIT = 1
+};
+
+enum {
+   JS_LOCALSTORAGE_NO = 0,
+   JS_LOCALSTORAGE_EPHEMERAL = 1,
+   JS_LOCALSTORAGE_PERMIT = 2
+};
+
+enum {
+   JS_COOKIE_NO = 0,
+   JS_COOKIE_RESTRICTED = 1
+};
+
 typedef struct {
    int width;
    int height;
@@ -102,6 +119,11 @@ typedef struct {
    bool_t load_background_images;
    bool_t load_stylesheets;
    bool_t parse_embedded_css;
+   bool_t enable_javascript;
+   int js_sessionstorage;
+   int js_localstorage;
+   int js_document_cookie;
+   int32_t js_storage_quota_kb;
    bool_t http_persistent_conns;
    bool_t http_strict_transport_security;
    bool_t http_force_https;

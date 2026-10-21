@@ -44,6 +44,7 @@
 #include "prefs.h"
 #include "prefsparser.hh"
 #include "keys.hh"
+#include "dillo_js.hh"
 #include "bw.h"
 #include "misc.h"
 #include "history.h"
@@ -83,6 +84,7 @@ typedef enum {
    DILLO_CLI_VERSION       = 1 << 3,
    DILLO_CLI_LOCAL         = 1 << 4,
    DILLO_CLI_GEOMETRY      = 1 << 5,
+   DILLO_CLI_JAVASCRIPT    = 1 << 6,
    DILLO_CLI_ERROR         = 1 << 15
 } OptID;
 
@@ -103,6 +105,8 @@ static const CLI_options Options[] = {
     "                         WxH[{+-}X{+-}Y]"},
    {"-h", "--help",       0, DILLO_CLI_HELP,
     "  -h, --help             Display this help text and exit."},
+   {"-j", "--enable-javascript", 0, DILLO_CLI_JAVASCRIPT,
+    "  -j, --enable-javascript Enable embedded QuickJS JavaScript interpreter."},
    {"-l", "--local",      0, DILLO_CLI_LOCAL,
     "  -l, --local            Don't load images or stylesheets, or follow\n"
     "                         redirections, for these FILEs or URLs."},
@@ -440,6 +444,7 @@ int main(int argc, char **argv)
       switch (opt_id) {
       case DILLO_CLI_FULLWINDOW:
       case DILLO_CLI_LOCAL:
+      case DILLO_CLI_JAVASCRIPT:
          break;
       case DILLO_CLI_XID:
       {
@@ -527,12 +532,17 @@ int main(int argc, char **argv)
    /* command line options override preferences */
    if (options_got & DILLO_CLI_FULLWINDOW)
       prefs.fullwindow_start = TRUE;
+   if (options_got & DILLO_CLI_JAVASCRIPT)
+      prefs.enable_javascript = TRUE;
    if (options_got & DILLO_CLI_GEOMETRY) {
        prefs.width = width;
        prefs.height = height;
        prefs.xpos = xpos;
        prefs.ypos = ypos;
    }
+
+   if (prefs.enable_javascript)
+      a_Dillo_JS_init();
 
    // Sets WM_CLASS hint on X11
    Fl_Window::default_xclass("dillo");
@@ -648,6 +658,8 @@ int main(int argc, char **argv)
    Paths::free();
    dw::core::freeall();
    dw::fltk::freeall();
+   if (prefs.enable_javascript)
+      a_Dillo_JS_cleanup();
    /* TODO: auth, css */
 
    //a_Dpi_dillo_exit();
