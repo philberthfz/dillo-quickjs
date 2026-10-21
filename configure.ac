@@ -693,13 +693,13 @@ if test "x$enable_js" != "xno"; then
         else
           QUICKJS_CPPFLAGS="-I$dir/include -I$dir/include/quickjs"
         fi
-        for libdir in "$dir/lib/quickjs" "$dir/lib" "$dir/lib64" "$dir/lib/x86_64-linux-gnu" "$dir/lib/aarch64-linux-gnu"; do
-          if test -f "$libdir/libquickjs.a" || test -f "$libdir/libquickjs.so" || test -f "$libdir/libquickjs.dylib"; then
-            QUICKJS_LIBS="-L$libdir -lquickjs"
+        for qjs_libdir in "$dir/lib/quickjs" "$dir/lib" "$dir/lib64" "$dir/lib/x86_64-linux-gnu" "$dir/lib/aarch64-linux-gnu"; do
+          if test -f "$qjs_libdir/libquickjs.a" || test -f "$qjs_libdir/libquickjs.so" || test -f "$qjs_libdir/libquickjs.dylib"; then
+            QUICKJS_LIBS="-L$qjs_libdir -lquickjs"
             quickjs_found="yes"
             break
-          elif test -f "$libdir/libqjs.a" || test -f "$libdir/libqjs.so" || test -f "$libdir/libqjs.dylib"; then
-            QUICKJS_LIBS="-L$libdir -lqjs"
+          elif test -f "$qjs_libdir/libqjs.a" || test -f "$qjs_libdir/libqjs.so" || test -f "$qjs_libdir/libqjs.dylib"; then
+            QUICKJS_LIBS="-L$qjs_libdir -lqjs"
             quickjs_found="yes"
             break
           fi
